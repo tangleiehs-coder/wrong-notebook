@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import { withBasePath } from "@/lib/base-path";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,8 +34,9 @@ export const metadata: Metadata = {
     telephone: false,
   },
   icons: {
-    icon: '/icons/icon.png',
-    apple: '/icons/icon.png',
+    // 部署在子路径下时，public 资源的引用需要带上 basePath 前缀
+    icon: withBasePath('/icons/icon.png'),
+    apple: withBasePath('/icons/icon.png'),
   },
 };
 

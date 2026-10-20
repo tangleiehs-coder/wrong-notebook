@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
+import { withBasePath } from "@/lib/base-path";
 import { RegisterRequest } from "@/types/api";
 
 export default function RegisterPage() {
@@ -32,7 +33,7 @@ export default function RegisterPage() {
 
     const checkRegistrationStatus = async () => {
         try {
-            const res = await fetch("/api/register/status");
+            const res = await fetch(withBasePath("/api/register/status"));
             const data = await res.json();
             setAllowRegistration(data.allowRegistration);
         } catch (error) {

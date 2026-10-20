@@ -26,6 +26,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { UserManagement } from "@/components/admin/user-management";
 import { apiClient } from "@/lib/api-client";
+import { withBasePath } from "@/lib/base-path";
 import { frontendLogger } from "@/lib/frontend-logger";
 import { AppConfig, UserProfile, UpdateUserProfileRequest, OpenAIInstance } from "@/types/api";
 import { ModelSelector } from "@/components/ui/model-selector";
@@ -107,7 +108,7 @@ export function SettingsDialog() {
             fetchProfile();
         }
         // 获取版本号
-        fetch("/api/version")
+        fetch(withBasePath("/api/version"))
             .then((res) => res.json())
             .then((data) => setVersion(data.version))
             .catch(() => {});
@@ -317,7 +318,7 @@ export function SettingsDialog() {
     const handleExportData = async () => {
         setExporting(true);
         try {
-            const res = await fetch('/api/export');
+            const res = await fetch(withBasePath('/api/export'));
             if (!res.ok) {
                 throw new Error('Export failed');
             }
@@ -348,7 +349,7 @@ export function SettingsDialog() {
         }
         setExporting(true);
         try {
-            const res = await fetch('/api/export?all=true');
+            const res = await fetch(withBasePath('/api/export?all=true'));
             if (!res.ok) {
                 const data = await res.json();
                 throw new Error(data.message || 'Export failed');
@@ -427,7 +428,7 @@ export function SettingsDialog() {
         try {
             const text = await selectedFile.text();
             const data = JSON.parse(text);
-            const res = await fetch("/api/import?all=true", {
+            const res = await fetch(withBasePath("/api/import?all=true"), {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(data),

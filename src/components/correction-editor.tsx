@@ -16,6 +16,7 @@ import { TagInput } from "@/components/tag-input";
 import { NotebookSelector } from "@/components/notebook-selector";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiClient } from "@/lib/api-client";
+import { withBasePath } from "@/lib/base-path";
 import { UserProfile, Notebook } from "@/types/api";
 import { inferSubjectFromName } from "@/lib/knowledge-tags";
 import { normalizeMistakeStatusForSave, type MistakeStatus } from "@/lib/mistake-status";
@@ -162,7 +163,7 @@ export function CorrectionEditor({ initialData, onSave, onCancel, imagePreview, 
         setIsAnalyzingGeogebra(true);
         setGeogebraError(null);
         try {
-            const response = await fetch("/api/geogebra-analyze", {
+            const response = await fetch(withBasePath("/api/geogebra-analyze"), {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

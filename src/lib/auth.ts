@@ -4,6 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import { prisma } from "@/lib/prisma"
 import { compare } from "bcryptjs"
 import { createLogger } from "@/lib/logger"
+import { withBasePath } from "@/lib/base-path"
 
 const logger = createLogger('auth');
 
@@ -15,7 +16,8 @@ export const authOptions: NextAuthOptions = {
     // @ts-expect-error trustHost is a valid option in newer NextAuth versions but types might be lagging
     trustHost: true,
     pages: {
-        signIn: "/login",
+        // 部署在子路径下时，登录页路径需要带上 basePath 前缀
+        signIn: withBasePath("/login"),
     },
     // Force using a single cookie name to avoid HTTP/HTTPS mismatches in proxy environments
     // This allows running without NEXTAUTH_URL behind Cloudflare Tunnel

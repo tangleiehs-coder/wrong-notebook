@@ -1,3 +1,5 @@
+import { withBasePath } from './base-path';
+
 type RequestOptions = RequestInit & {
     params?: Record<string, string>;
     timeout?: number; // 超时时间（毫秒），默认 60000
@@ -13,7 +15,8 @@ export class ApiError extends Error {
 async function request<T>(url: string, options: RequestOptions = {}): Promise<T> {
     const { params, headers, timeout = 60000, ...rest } = options;
 
-    let finalUrl = url;
+    // 部署在子路径下时，需要给手写的 API 路径补上 basePath 前缀
+    let finalUrl = withBasePath(url);
     if (params) {
         const searchParams = new URLSearchParams(params);
         finalUrl += `?${searchParams.toString()}`;

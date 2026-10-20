@@ -9,6 +9,8 @@
  * Default flush interval: 1 second or when buffer reaches 20 entries.
  */
 
+import { withBasePath } from './base-path';
+
 type LogLevel = 'info' | 'warn' | 'error';
 
 interface LogEntry {
@@ -91,7 +93,7 @@ class FrontendLogger {
 
   private async sendBatch(logs: LogEntry[]) {
     try {
-      fetch('/api/logs/frontend', {
+      fetch(withBasePath('/api/logs/frontend'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ logs }),

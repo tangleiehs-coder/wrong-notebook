@@ -9,6 +9,7 @@ import { ImageCropper } from "@/components/image-cropper";
 import { ParsedQuestion } from "@/lib/ai";
 import { UserWelcome } from "@/components/user-welcome";
 import { apiClient } from "@/lib/api-client";
+import { withBasePath } from "@/lib/base-path";
 import { AnalyzeResponse, Notebook, AppConfig } from "@/types/api";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -453,7 +454,7 @@ function HomeContent() {
                             variant="ghost"
                             size="icon"
                             className="rounded-full text-muted-foreground hover:text-destructive"
-                            onClick={() => signOut({ callbackUrl: '/login' })}
+                            onClick={() => signOut({ callbackUrl: withBasePath('/login') })}
                             title={t.app?.logout || 'Logout'}
                         >
                             <LogOut className="h-5 w-5" />
