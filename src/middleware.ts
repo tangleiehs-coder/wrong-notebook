@@ -34,7 +34,7 @@ export async function middleware(req: NextRequest) {
         if (isAuthPage) {
             if (isAuth) {
                 logger.debug('Redirecting authenticated user to /');
-                return NextResponse.redirect(rootUrl(req));
+                return NextResponse.redirect(appUrl(req, "/"));
             }
             return null;
         }
@@ -48,11 +48,7 @@ export async function middleware(req: NextRequest) {
             }
 
             logger.debug({ callbackUrl: from }, 'Redirecting unauthenticated user to login');
-            // 部署在子路径下时，重定向地址必须带上 basePath，
-            // 否则会跳到域名根目录去。用 req.nextUrl.clone() 让 Next 自动补前缀。
-            const loginUrl = req.nextUrl.clone();
-            loginUrl.pathname = "/login";
-            loginUrl.search = "";
+            const loginUrl = appUrl(req, "/login");
             loginUrl.searchParams.set("callbackUrl", from);
             return NextResponse.redirect(loginUrl);
         }
@@ -60,7 +56,7 @@ export async function middleware(req: NextRequest) {
         // Admin route protection: only allow users with admin role
         if (isAdminPage && token?.role !== "admin") {
             logger.warn({ userId: token?.id, path: req.nextUrl.pathname }, 'Non-admin user attempting to access admin area');
-            return NextResponse.redirect(rootUrl(req));
+            return NextResponse.redirect(appUrl(req, "/"));
         }
     } catch (e) {
         logger.error({ error: e }, 'Error processing token');
@@ -68,16 +64,37 @@ export async function middleware(req: NextRequest) {
     }
 }
 
-/** 构造应用根路径的绝对地址（自动带 basePath 前缀） */
-function rootUrl(req: NextRequest): URL {
-    const url = req.nextUrl.clone();
-    url.pathname = "/";
-    url.search = "";
+/**
+ * 构造应用的绝对地址。
+ *
+ * 不能直接用 req.nextUrl.clone()：Next.js 在未开启 experimental.trustHostHeader 时，
+ * initURL 是用服务器自身的 hostname:port 拼的（反代场景下会变成 localhost:3000），
+ * 导致重定向跳到错误域名。这里改为优先使用反代传来的真实 Host / 协议。
+ *
+ * @param pathname 应用内路径（不含 basePath），会由 withBasePath 补前缀
+ */
+function appUrl(req: NextRequest, pathname: string): URL {
+    const forwardedHost = req.headers.get("x-forwarded-host");
+    const host = forwardedHost || req.headers.get("host") || req.nextUrl.host;
+    const forwardedProto = req.headers.get("x-forwarded-proto");
+    const proto = forwardedProto
+        ? forwardedProto.split(",")[0].trim()
+        : (req.nextUrl.protocol === "https:" ? "https" : "http");
+
+    const url = new URL(`${proto}://${host}${withBasePath(pathname)}`);
     return url;
 }
 
 export const config = {
     matcher: [
+        /*
+         * 第一条：应用根路径。
+         * Next.js 会给每条 matcher 拼上 basePath 前缀，形如
+         * /learnsmarter/:nextData(...)?/(|/?index|/?index\.json)?
+         * 这条能精确匹配 basePath 根（/learnsmarter 与 /learnsmarter/），
+         * 而下面那条通配规则要求 basePath 后必须跟斜杠，覆盖不到根路径。
+         */
+        "/",
         /*
          * Match all request paths except for the ones starting with:
          * - api (API routes)
